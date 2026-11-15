@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f4f1ea">
+    <title>Список Дел</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <header class="app-header">
+      <div class="header-left">
+        <h1>Список Дел</h1>
+        <div id="token-info" class="token-info" hidden>
+          <span id="token-role" class="role-badge"></span>
+          <span id="token-expiry"></span>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <div id="author-info" class="author-info" hidden>
+          <span><strong>Автор</strong> <span id="author-name"></span></span>
+          <span class="author-divider" aria-hidden="true"></span>
+          <span><strong>Moodle Login</strong> <span id="author-login"></span></span>
+        </div>
+        <div class="header-actions">
+          <button id="project-info" class="text-button" type="button">Информация о проекте</button>
+          <button id="logout" class="text-button logout-button" type="button" hidden>Выйти</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="page-shell">
+      <section id="login-panel" class="login-panel" aria-labelledby="login-title">
+        <p class="section-kicker">Доступ к приложению</p>
+        <h2 id="login-title">Введите JWT-токен</h2>
+        <form id="login-form" class="login-form">
+          <label class="sr-only" for="token">JWT Bearer-токен</label>
+          <input id="token" type="password" required autocomplete="off" spellcheck="false" placeholder="eyJhbGciOiJIUzI1NiIs...">
+          <button type="submit" class="button button-primary">Войти</button>
+        </form>
+        <p id="login-message" class="message" role="alert"></p>
+      </section>
+
+      <section id="workspace" hidden>
+        <section class="controls" aria-label="Управление задачами">
+          <form id="filter-form" class="filter-form">
+            <label for="filter-run-id">Фильтр по runId</label>
+            <div class="filter-row">
+              <input id="filter-run-id" value="manual" maxlength="64" pattern="[A-Za-z0-9_-]+" placeholder="Оставьте пустым, чтобы показать все">
+              <button type="submit" class="button button-secondary">Показать</button>
+            </div>
+          </form>
+          <button id="open-create" class="button button-primary create-button" type="button">
+            <span aria-hidden="true">＋</span> Создать новую задачу
+          </button>
+        </section>
+
+        <div class="content-heading">
+          <div>
+            <p class="section-kicker">Результаты</p>
+            <h2>Задачи</h2>
+          </div>
+          <p id="result-summary" class="result-summary"></p>
+        </div>
+
+        <p id="message" class="message" role="status"></p>
+        <div id="loading" class="loading" hidden>Загружаем задачи…</div>
+        <section id="task-grid" class="task-grid" aria-live="polite"></section>
+        <div id="empty-state" class="empty-state" hidden>
+          <span class="empty-icon" aria-hidden="true">✓</span>
+          <h3>Задач с таким runId нет</h3>
+          <p>Измените фильтр или создайте новую задачу.</p>
+        </div>
+      </section>
+    </main>
+
+    <dialog id="project-dialog" class="modal">
+      <div class="modal-body">
+        <div class="modal-header">
+          <div>
+            <p class="section-kicker">О проекте</p>
+            <h2>Технологический стек</h2>
+          </div>
+          <button class="icon-button" data-close="project-dialog" type="button" aria-label="Закрыть">×</button>
+        </div>
+        <p class="modal-lead">Учебное CRUD-приложение со строгим HTTP-контрактом, постоянным хранением данных и ролевыми JWT.</p>
+        <div class="stack-grid">
+          <article><span>Runtime</span><strong>Node.js 22</strong></article>
+          <article><span>Backend</span><strong>Express 5</strong></article>
+          <article><span>Database</span><strong>PostgreSQL 17</strong></article>
+          <article><span>Инфраструктура</span><strong>Docker Compose</strong></article>
+          <article><span>Авторизация</span><strong>JWT · HS256</strong></article>
+          <article><span>Frontend</span><strong>HTML · CSS · JavaScript</strong></article>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog id="create-dialog" class="modal modal-small">
+      <form id="create-form" class="modal-body">
+        <div class="modal-header">
+          <div>
+            <p class="section-kicker">Новая запись</p>
+            <h2>Создать задачу</h2>
+          </div>
+          <button class="icon-button" data-close="create-dialog" type="button" aria-label="Закрыть">×</button>
+        </div>
+        <label for="create-title">Название</label>
+        <input id="create-title" maxlength="200" required placeholder="Что нужно сделать?">
+        <label for="create-run-id">runId</label>
+        <input id="create-run-id" maxlength="64" pattern="[A-Za-z0-9_-]+" required value="manual">
+        <p id="create-message" class="message" role="alert"></p>
+        <div class="modal-actions">
+          <button class="button button-secondary" data-close="create-dialog" type="button">Отмена</button>
+          <button class="button button-primary" type="submit">Создать</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="task-dialog" class="modal task-modal">
+      <form id="task-form" class="modal-body">
+        <div class="modal-header">
+          <div>
+            <p class="section-kicker">Карточка задачи</p>
+            <h2>Подробная информация</h2>
+          </div>
+          <button class="icon-button" data-close="task-dialog" type="button" aria-label="Закрыть">×</button>
+        </div>
+
+        <label for="detail-title">Название</label>
+        <input id="detail-title" maxlength="200" required>
+
+        <div class="detail-grid">
+          <div><span>Статус</span><select id="detail-done"><option value="false">В работе</option><option value="true">Выполнена</option></select></div>
+          <div><span>runId</span><strong id="detail-run-id"></strong></div>
+          <div><span>Автор</span><strong id="detail-owner"></strong></div>
+          <div><span>Дата создания</span><strong id="detail-created"></strong></div>
+          <div class="detail-id"><span>UUID</span><code id="detail-id"></code></div>
+        </div>
+        <p id="task-message" class="message" role="alert"></p>
+
+        <div class="modal-actions task-actions">
+          <button id="delete-task" class="button button-danger" type="button">Удалить задачу</button>
+          <span class="action-spacer"></span>
+          <button class="button button-secondary" data-close="task-dialog" type="button">Закрыть</button>
+          <button class="button button-primary" type="submit">Сохранить</button>
+        </div>
+      </form>
+    </dialog>
+  </body>
+</html>

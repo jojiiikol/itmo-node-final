@@ -1,0 +1,27 @@
+{
+  "name": "itmo-node-final",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Personal Express and PostgreSQL task list",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "migrate": "node src/migrate.js",
+    "token:issue": "node scripts/issue-token.js",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.16.3"
+  },
+  "devDependencies": {
+    "supertest": "^7.1.4"
+  }
+}
